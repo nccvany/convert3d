@@ -8,6 +8,7 @@ import { PLYLoader } from "three/addons/loaders/PLYLoader.js";
 import { PLYExporter } from "three/addons/exporters/PLYExporter.js";
 import * as THREE from "three";
 function downloadFile(result, filename) {
+  document.getElementById("content").innerText = "JavaScript content!";
   var blob = new Blob([result], { type: "text/plain" });
   var link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
@@ -56,6 +57,8 @@ const convertFromat = async (input, outputFormat) => {
       console.log("Unsupported Input Format");
   }
 
+  document.getElementById("content").innerText = `JavaScript content 123!`;
+
   let exporter, result;
   switch (outputFormat) {
     case "glb":
@@ -99,4 +102,13 @@ const convertFromat = async (input, outputFormat) => {
       console.log("Unsupported Output Format");
   }
 };
-convertFromat("./models/damaged-helmet.obj", "glb");
+convertFromat(
+  "https://teststaccount11111.blob.core.windows.net/test-container/damaged-helmet.obj",
+  "glb"
+).catch((err) => {
+  document.getElementById("content").innerText = `JavaScript content! err ${
+    err?.message || err
+  }`;
+});
+
+document.getElementById("heading").innerText = "Hello from JavaScript!";
