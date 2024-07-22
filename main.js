@@ -7,9 +7,10 @@ import { STLLoader } from "three/addons/loaders/STLLoader.js";
 import { PLYLoader } from "three/addons/loaders/PLYLoader.js";
 import { PLYExporter } from "three/addons/exporters/PLYExporter.js";
 import * as THREE from "three";
-function downloadFile(result, filename) {
-  document.getElementById("content").innerText = "JavaScript content!";
+async function downloadFile(result, filename) {
   var blob = new Blob([result], { type: "text/plain" });
+  const output = document.getElementById("output");
+  output.innerText = await blob.text();
   var link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = filename;
@@ -57,8 +58,6 @@ const convertFromat = async (input, outputFormat) => {
       console.log("Unsupported Input Format");
   }
 
-  document.getElementById("content").innerText = `JavaScript content 123!`;
-
   let exporter, result;
   switch (outputFormat) {
     case "glb":
@@ -102,10 +101,10 @@ const convertFromat = async (input, outputFormat) => {
       console.log("Unsupported Output Format");
   }
 };
-convertFromat(
-  "https://teststaccount11111.blob.core.windows.net/test-container/damaged-helmet.obj",
-  "glb"
-).catch((err) => {
+const inputUrl = document.getElementById("inputUrl").innerText;
+const outputFormat = document.getElementById("outputFormat").innerText;
+document.getElementById("content").innerText = inputUrl;
+convertFromat(`${inputUrl}`, `${outputFormat}`).catch((err) => {
   document.getElementById("content").innerText = `JavaScript content! err ${
     err?.message || err
   }`;

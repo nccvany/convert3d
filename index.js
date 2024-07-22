@@ -8,7 +8,7 @@ function delay(time) {
   });
 }
 
-(async () => {
+const convert3d = async () => {
   const browser = await puppeteer.launch({
     headless: true,
     args: ["--disable-web-security"],
@@ -19,7 +19,17 @@ function delay(time) {
   const htmlContent = fs.readFileSync(htmlFilePath, "utf8");
   await page.setContent(htmlContent);
 
-  const jsFilePath = path.join(__dirname, "dist/assets/index-BOq-Rxuo.js");
+  await page.evaluate(() => {
+    const input = document.getElementById("inputUrl");
+    input.innerText =
+      "https://teststaccount11111.blob.core.windows.net/test-container/damaged-helmet.obj";
+
+    const outputFormat = document.getElementById("outputFormat");
+    outputFormat.innerText = "glb";
+  });
+  await page.content();
+
+  const jsFilePath = path.join(__dirname, "dist/index.js");
   const jsContent = fs.readFileSync(jsFilePath, "utf8");
   await page.addScriptTag({ content: jsContent });
 
@@ -27,10 +37,15 @@ function delay(time) {
   await page.waitForSelector("#heading");
   await page.waitForSelector("#content");
   // Print the updated HTML content
-  const updatedContent = await page.content();
-  console.log(updatedContent);
+  await page.content();
 
-  await page.screenshot({ path: "example.png" });
+  const outputEl = await page.$("#output");
+  const data = await page.evaluate((el) => el.textContent, outputEl);
 
   await browser.close();
-})();
+
+  console.log("outputData", data);
+  return data;
+};
+
+convert3d();
