@@ -7,56 +7,49 @@ import { STLLoader } from "three/addons/loaders/STLLoader.js";
 import { PLYLoader } from "three/addons/loaders/PLYLoader.js";
 import { PLYExporter } from "three/addons/exporters/PLYExporter.js";
 import * as THREE from "three";
-function downloadFile(result, filename) {
-  var blob = new Blob([result], { type: "text/plain" });
-  var link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-}
+import { downloadFile } from "./utils/downloadFile";
 
-const convertFromat = async (input, outputFormat) => {
-  const inputFormat = input.lastIndexOf(".");
-  const extension = input.substring(inputFormat + 1);
-  console.log(extension);
-  let loader, data;
+const loader = async (extension,input) =>{
+  let loader,data;
   const scene = new THREE.Scene();
-
   switch (extension) {
     case "glb":
       loader = new GLTFLoader();
       data = await loader.loadAsync(input);
       console.log("data", data);
-      break;
+      return data
     case "gltf":
       loader = new GLTFLoader();
       data = await loader.loadAsync(input);
       console.log("data", data);
-      break;
+      return data;
     case "stl":
       loader = new STLLoader();
       data = await loader.loadAsync(input);
       data = new THREE.Mesh(data, new THREE.MeshStandardMaterial());
       console.log("data", data);
-      break;
+      return data;
     case "obj":
       loader = new OBJLoader();
       data = await loader.loadAsync(input);
       scene.add(data);
       data = scene;
       console.log("data", data);
-      break;
+      return data;
     case "ply":
       loader = new PLYLoader();
       data = await loader.loadAsync(input);
       data = new THREE.Mesh(data, new THREE.MeshStandardMaterial());
       console.log("data", data);
-      break;
+      return data;
     default:
       console.log("Unsupported Input Format");
+      throw new Error('Unsupported Input Format')
   }
+}
 
-  let exporter, result;
+const exporter = async (outputFormat,data) =>{
+  let exporter,result;
   switch (outputFormat) {
     case "glb":
       exporter = new GLTFExporter();
@@ -98,5 +91,14 @@ const convertFromat = async (input, outputFormat) => {
     default:
       console.log("Unsupported Output Format");
   }
+}
+
+const convertFromat = async (input, outputFormat) => {
+  const inputFormat = input.lastIndexOf(".");
+  const extension = input.substring(inputFormat + 1);
+  console.log(extension);
+  const data = await loader(extension,input);
+  await exporter(outputFormat,data); 
 };
-convertFromat("./models/damaged-helmet.obj", "glb");
+
+convertFromat("./models/damaged-helmet.stl", "glb");
