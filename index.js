@@ -74,53 +74,53 @@ async function captureImageFromModel(modelPath, outputFileName) {
   } else if (extension === "ply") {
     loader = new PLYLoader();
   }
-  
-  loader.load(
-    modelPath,
-    (geometry) => {
-      let mesh;
-      if (extension === "stl" || extension === "ply") {
-        const material = new THREE.MeshStandardMaterial({ color: 0x606060 });
-        mesh = new THREE.Mesh(geometry, material);
-      } else if (extension === "glb") {
-        mesh = geometry.scene;
-      } else if (extension === "obj") {
-        mesh = geometry;
-      }
 
-      mesh.scale.set(1, 1, 1); // Adjust scale if needed
-      mesh.position.set(0, 0, 0); // Adjust position if needed
-      scene.add(mesh);
+try {
+    const geometry = await new Promise((resolve, reject) => {
+      loader.load(
+        modelPath,
+        resolve,
+        undefined,
+        reject
+      );
+    });
 
-      // Render the scene
+    let mesh;
+    if (extension === "stl" || extension === "ply") {
+      const material = new THREE.MeshStandardMaterial({ color: 0x606060 });
+      mesh = new THREE.Mesh(geometry, material);
+    } else if (extension === "glb") {
+      mesh = geometry.scene;
+    } else if (extension === "obj") {
+      mesh = geometry;
+    }
+
+    mesh.scale.set(1, 1, 1); // Adjust scale if needed
+    mesh.position.set(0, 0, 0); // Adjust position if needed
+    scene.add(mesh);
+
+    // Render the scene
+    renderer.render(scene, camera);
+
+    // Capture the image
+    const captureImage = () => {
       renderer.render(scene, camera);
 
-      // Capture the image
-      const captureImage = async () => {
-        renderer.render(scene, camera);
+      // Get the data URL of the canvas content
+      const dataURL = renderer.domElement.toDataURL("image/png");
 
-        // Get the data URL of the canvas content
-        const dataURL = renderer.domElement.toDataURL("image/png");
+      return dataURL;
+    };
 
-        // Create a link element to trigger the download
-        const link = document.createElement("a");
-        link.href = dataURL;
-        link.download = outputFileName;
-        link.textContent = "Download Image";
-        document.body.appendChild(link);
-        link.click();
-      };
+    // Capture the image after a short delay to ensure everything is rendered
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return captureImage();
 
-      // // Capture the image after a short delay to ensure everything is rendered
-      // setTimeout(captureImage, 1000);
-      captureImage();
-    },
-    undefined,
-    (error) => {
-      console.error("An error happened:", error);
-    }
-  );
+  } catch (error) {
+    console.error("An error happened:", error);
+    throw error;
+  }
 }
 
-// Example usage
-captureImageFromModel("./models/converted-model.ply", "model-screenshot.png");
+const result= await captureImageFromModel("./models/damaged-helmet.stl");
+console.log(result)
